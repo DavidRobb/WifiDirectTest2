@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.IntentFilter
 import android.net.wifi.p2p.WifiP2pManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
@@ -82,17 +82,28 @@ class MainActivity : ComponentActivity() {
 
     }
 
+    companion object {
+        val REQUIRED_PERMISSIONS =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                listOf(
+                    Manifest.permission.NEARBY_WIFI_DEVICES,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                )
+            } else {
+                listOf(
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                )
+            }
+    }
 }
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 private fun StartScanWithPermissions(activity: MainActivity) {
-    val locationPermissionsState = rememberMultiplePermissionsState(
-        listOf(
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        )
-    )
+    val locationPermissionsState =
+        rememberMultiplePermissionsState(MainActivity.REQUIRED_PERMISSIONS)
 
     if (locationPermissionsState.allPermissionsGranted) {
         WiFiTest(activity = activity)
@@ -132,7 +143,6 @@ private fun StartScanWithPermissions(activity: MainActivity) {
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun WiFiTest(activity: MainActivity) {
     val peers = activity.wiFiDirectModel.deviceInfoFLow.collectAsStateWithLifecycle()
@@ -145,7 +155,9 @@ fun WiFiTest(activity: MainActivity) {
         for (p in peers.value.deviceList) {
             Card(
                 backgroundColor = Color.LightGray,
-                modifier = Modifier.height(100.dp).padding(20.dp)
+                modifier = Modifier
+                    .height(100.dp)
+                    .padding(20.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Button(onClick = { activity.wiFiDirectModel.connect(p) }) {

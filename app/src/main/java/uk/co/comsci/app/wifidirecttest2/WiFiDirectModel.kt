@@ -127,10 +127,13 @@ class WiFiDirectModel(
                     onGroupInfoAvailable(goIpAddress, groupInfo)
                 }
             }
+
+        } else if (networkInfo?.isConnectedOrConnecting == true) {
+            Timber.i("P2P is still connecting...")
         } else {
             // It's a disconnect
-            Timber.i("Connection disconnect")
-            connectedDeviceFlow.value = null
+            Timber.i("Not Connected yet???")
+//            connectedDeviceFlow.value = null
         }
     }
 
